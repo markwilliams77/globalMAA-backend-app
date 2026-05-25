@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      Role
+  vendor    Vendor?
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  ADMIN
+  VENDOR
+}
+
+model Vendor {
+  id            String       @id @default(uuid())
+  userId        String       @unique
+  companyName   String
+  description   String?
+  image         String?
+  rating        Float?
+  accreditation String[]     @default([])
+  startingPrice String?
+  category      String?
+  specialty     String?
+  services      String[]
+  region        String
+  stats         Json?
+  staffCount    String?
+  status        VendorStatus
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+enum VendorStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Tender {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  createdBy   String
+  createdAt   DateTime @default(now())
+}
+
+model Bid {
+  id        String   @id @default(uuid())
+  tenderId  String
+  vendorId  String
+  amount    Float
+  createdAt DateTime @default(now())
+}
+
+model SupportThread {
+  id        String   @id @default(uuid())
+  createdBy String
+  messages  Message[]
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  threadId  String
+  senderId  String
+  content   String
+  createdAt DateTime @default(now())
+
+  thread SupportThread @relation(fields: [threadId], references: [id])
+}
+
+model Lead {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  status    String
+  assignedTo String?
+}
+
+model Consultation {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  message   String
+  createdAt DateTime @default(now())
+}
+
+model OtpLead {
+  id             String    @id @default(uuid())
+  phone          String    @unique
+  email          String?   @unique
+  otpSendCount   Int       @default(0)
+  firstOtpSentAt DateTime  @default(now())
+  lastOtpSentAt  DateTime  @default(now())
+  verifiedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
