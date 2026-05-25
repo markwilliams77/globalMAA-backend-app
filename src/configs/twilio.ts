@@ -1,8 +1,16 @@
 import twilio from "twilio";
 
-const client = twilio(
-  process.env.TWILIO_ACCOUNT_SID?.trim(),
-  process.env.TWILIO_AUTH_TOKEN?.trim()
-);
+let client: ReturnType<typeof twilio> | null = null;
 
-export default client;
+export const getTwilioClient = () => {
+  const accountSid = process.env.TWILIO_ACCOUNT_SID?.trim();
+  const authToken = process.env.TWILIO_AUTH_TOKEN?.trim();
+
+  if (!accountSid || !authToken) {
+    throw new Error("Twilio credentials are not configured");
+  }
+
+  client = client ?? twilio(accountSid, authToken);
+
+  return client;
+};
