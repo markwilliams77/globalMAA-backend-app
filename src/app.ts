@@ -7,29 +7,30 @@ import registryRoutes from "./routes/registry.routes";
 
 const app = express();
 
+const allowedOrigins = [
+  "https://medalliance-frontend.vercel.app",
+  "https://global-maa-backend-app-vwh5.vercel.app",
+  "https://globalmaa.com",
+  "https://www.globalmaa.com",
+  "http://localhost:3000",
+];
+
 app.use(
   cors({
-    origin: (origin, callback) => {
-      const allowedOrigins = [
-        "https://medalliance-frontend.vercel.app",
-        "https://global-maa-backend-app-vwh5.vercel.app",
-        "https://globalmaa.com",
-        "https://www.globalmaa.com",
-        "http://localhost:3000",
-      ];
-
-      // allow requests with no origin (like mobile apps / curl)
+    origin: function (origin, callback) {
       if (!origin) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) {
-        callback(null, true);
+        return callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS: " + origin));
+        return callback(new Error("CORS not allowed"));
       }
     },
     credentials: true,
   })
 );
+
+// 🔥 must-have
 app.options("*", cors());
 app.use(express.json());
 
