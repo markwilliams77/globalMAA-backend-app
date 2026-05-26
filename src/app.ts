@@ -9,16 +9,25 @@ const app = express();
 
 app.use(
   cors({
-    origin: [
-      "https://medalliance-frontend.vercel.app",
-      "https://global-maa-backend-app-vwh5.vercel.app",
-      "https://globalmaa.com",
-      "https://www.globalmaa.com",
-      "http://localhost:3000",
-    ],
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        "https://medalliance-frontend.vercel.app",
+        "https://global-maa-backend-app-vwh5.vercel.app",
+        "https://globalmaa.com",
+        "https://www.globalmaa.com",
+        "http://localhost:3000",
+      ];
+
+      // allow requests with no origin (like mobile apps / curl)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS: " + origin));
+      }
+    },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 app.use(express.json());
