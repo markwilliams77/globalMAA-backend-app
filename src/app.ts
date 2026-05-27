@@ -31,7 +31,7 @@ app.use(
 );
 
 // 🔥 must-have
-app.options("/*", cors());
+app.options("/{*splat}", cors());
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
