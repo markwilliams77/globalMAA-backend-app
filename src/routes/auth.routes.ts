@@ -4,8 +4,35 @@ import { sendOTP, verifyOTP } from "../services/otpService";
 
 const router = express.Router();
 
+const normalizeIndianPhoneNumber = (phone: string) => {
+  const digits = phone.replace(/\D/g, "");
+
+  if (digits.length === 10) {
+    return `+91${digits}`;
+  }
+
+  if (digits.length === 11 && digits.startsWith("0")) {
+    return `+91${digits.slice(1)}`;
+  }
+
+  if (digits.length === 12 && digits.startsWith("91")) {
+    return `+${digits}`;
+  }
+
+  return phone.trim();
+};
+
+const getPhoneMatches = (rawPhone: string, normalizedPhone: string) => {
+  const trimmedPhone = rawPhone.trim();
+
+  return trimmedPhone && trimmedPhone !== normalizedPhone
+    ? [{ phone: normalizedPhone }, { phone: trimmedPhone }]
+    : [{ phone: normalizedPhone }];
+};
+
 router.post("/send-otp", async (req, res) => {
-  const phone = typeof req.body.phone === "string" ? req.body.phone.trim() : "";
+  const rawPhone = typeof req.body.phone === "string" ? req.body.phone.trim() : "";
+  const phone = rawPhone ? normalizeIndianPhoneNumber(rawPhone) : "";
   const email = typeof req.body.email === "string" ? req.body.email.trim() : undefined;
   const mode = req.body.mode === "signup" || email ? "signup" : "login";
 
@@ -15,8 +42,10 @@ router.post("/send-otp", async (req, res) => {
 
   try {
     if (mode === "login") {
-      const existingLead = await prisma.otpLead.findUnique({
-        where: { phone },
+      const existingLead = await prisma.otpLead.findFirst({
+        where: {
+          OR: getPhoneMatches(rawPhone, phone),
+        },
       });
 
       if (!existingLead) {
@@ -26,7 +55,7 @@ router.post("/send-otp", async (req, res) => {
       await sendOTP(phone);
 
       await prisma.otpLead.update({
-        where: { phone },
+        where: { phone: existingLead.phone },
         data: {
           otpSendCount: { increment: 1 },
           lastOtpSentAt: new Date(),
@@ -39,7 +68,7 @@ router.post("/send-otp", async (req, res) => {
     const existingLead = await prisma.otpLead.findFirst({
       where: {
         OR: [
-          { phone },
+          ...getPhoneMatches(rawPhone, phone),
           ...(email ? [{ email }] : []),
         ],
       },
@@ -87,7 +116,8 @@ router.post("/send-otp", async (req, res) => {
 });
 
 router.post("/verify-otp", async (req, res) => {
-  const phone = typeof req.body.phone === "string" ? req.body.phone.trim() : "";
+  const rawPhone = typeof req.body.phone === "string" ? req.body.phone.trim() : "";
+  const phone = rawPhone ? normalizeIndianPhoneNumber(rawPhone) : "";
   const code = typeof req.body.code === "string" ? req.body.code.trim() : "";
 
   if (!phone || !code) {
@@ -99,8 +129,10 @@ router.post("/verify-otp", async (req, res) => {
     const verified = response.status === "approved";
 
     if (verified) {
-      await prisma.otpLead.update({
-        where: { phone },
+      await prisma.otpLead.updateMany({
+        where: {
+          OR: getPhoneMatches(rawPhone, phone),
+        },
         data: { verifiedAt: new Date() },
       });
     }
