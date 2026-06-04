@@ -4,6 +4,7 @@ import cors from "cors";
 import { prisma } from "./configs/db";
 import authRoutes from "./routes/auth.routes";
 import registryRoutes from "./routes/registry.routes";
+import vendorRoutes from "./routes/vendors.routes";
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/registry", registryRoutes);
+app.use("/api/vendors", vendorRoutes);
 
 app.get("/", async (req, res) => {
   try {

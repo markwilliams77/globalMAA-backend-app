@@ -41,9 +41,41 @@ model Vendor {
   user User @relation(fields: [userId], references: [id])
 }
 
+model VendorOnboarding {
+  id               String                   @id @default(uuid())
+  orgName          String
+  address          String
+  email            String                   @unique
+  contactPerson    String
+  contactNumber    String
+  orgType          String
+  specialties      String[]                 @default([])
+  plan             String
+  documents        Json?                    @default("{}")
+  paymentOrderId   String?
+  paymentStatus    String?
+  razorpayOrderId  String?
+  razorpayPaymentId String?
+  razorpaySignature String?
+  status           VendorOnboardingStatus   @default(DRAFT)
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+}
+
 enum VendorStatus {
   PENDING
   APPROVED
+  REJECTED
+}
+
+enum VendorOnboardingStatus {
+  DRAFT
+  DOCUMENTS_PENDING
+  PAYMENT_PENDING
+  PAYMENT_COMPLETED
+  UNDER_REVIEW
+  PENDING_ACTIVATION
+  ACTIVE
   REJECTED
 }
 
