@@ -14,6 +14,7 @@ const allowedOrigins = [
   "https://globalmaa.com",
   "https://www.globalmaa.com",
   "http://localhost:3000",
+  "http://localhost:3002",
 ];
 
 app.use(

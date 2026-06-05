@@ -1,6 +1,7 @@
 import express from "express";
 import { prisma } from "../configs/db";
 import { sendOTP, verifyOTP } from "../services/otpService";
+import { vendorLogin } from "../controllers/auth.controllers";
 
 const router = express.Router();
 
@@ -29,6 +30,8 @@ const getPhoneMatches = (rawPhone: string, normalizedPhone: string) => {
     ? [{ phone: normalizedPhone }, { phone: trimmedPhone }]
     : [{ phone: normalizedPhone }];
 };
+
+router.post("/vendor-login", vendorLogin);
 
 router.post("/send-otp", async (req, res) => {
   const rawPhone = typeof req.body.phone === "string" ? req.body.phone.trim() : "";
